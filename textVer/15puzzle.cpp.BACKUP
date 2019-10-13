@@ -1,0 +1,221 @@
+#include<iostream>
+#include<stdexcept>
+#include<algorithm>
+#include"board.cpp"
+
+bool is_game_won(const board& gboard);
+void player_move(board& gboard);
+
+
+int main() {
+	try{
+		board gameBoard;
+		gameBoard.draw();
+		
+		bool gameWon=false;
+		int moves=0;
+
+		while(!gameWon){
+			player_move(gameBoard);
+			moves++;
+			gameBoard.draw();
+			gameWon=is_game_won(gameBoard);
+		}
+
+		std::cout<<"Congradulations! You Won!"<<std::endl
+			<<"Moves: "<<moves<<std::endl;
+
+		return 0;
+	}
+	catch(std::exception& e) {
+		std::cerr<<e.what()<<std::endl;
+		return 1;
+	}
+	catch(...) {
+		std::cerr<<"Unknown Exception Thrown"<<std::endl;
+		return 2;
+	}
+
+	return 0;
+}
+
+bool is_game_won(const board& gboard) {
+	//checks if board is sorted and returns true if it is
+	
+	std::vector<int> solvedBoard=gboard.tile_order();
+	std::sort(solvedBoard.begin(), solvedBoard.end());
+	std::vector<int> currBoard=gboard.tile_order();
+
+	for(size_t i=0; i<currBoard.size(); i++) {
+		if(!(currBoard[i]==solvedBoard[i])) {
+			return false;
+		}
+	}
+	return true;
+}
+
+void player_move(board& gboard) {
+
+	point empTile=gboard.empty_tile();
+	point up,down,left,right;
+
+	up.x=-1;
+	up.y=-1;
+	down.x=-1;
+	down.y=-1;
+	left.x=-1;
+	left.y=-1;
+	right.x=-1;
+	right.y=-1;
+
+	if(empTile.x==0 || empTile.x==3 || empTile.y==0 || empTile.y==3 ) { //if emptile is on side of board
+		if((empTile.x==0 && empTile.y==0) || (empTile.x==3 && empTile.y==0) || (empTile.x==0 || empTile.y==3) || (empTile.x==3 && empTile.y==3)) { //if in corner
+			if(empTile.x==0) { //left corners
+				if(empTile.y==0) {
+					right.x=empTile.x+1;
+					right.y=empTile.y;
+
+					down.x=empTile.x;
+					down.y=empTile.y;
+				}
+				if(empTile.y==3) {
+					right.x=empTile.x+1;
+					right.y=empTile.y;
+
+					up.x=empTile.x;
+					up.y=empTile.y-1;
+				}
+			}
+			if(empTile.x==3) { //right corners
+				if(empTile.y==0) {
+					left.x=empTile.x-1;
+					left.y=empTile.y;
+
+					down.x=empTile.x;
+					down.y=empTile.y;
+				}
+				if(empTile.y==3) {
+					left.x=empTile.x-1;
+					left.y=empTile.y;
+
+					up.x=empTile.x;
+					up.y=empTile.y-1;
+				}
+			}
+		} else {
+			//on sides
+			switch(empTile.x) {
+				case 0: //left side
+				up.x=empTile.x;
+				up.y=empTile.y-1;
+
+				down.x=empTile.x;
+				down.y=empTile.y+1;
+
+				right.x=empTile.x+1;
+				right.y=empTile.y;
+				break;
+
+				case 3: //right side
+					up.x=empTile.x;
+					up.y=empTile.y-1;
+
+					down.x=empTile.x;
+					down.y=empTile.y+1;
+
+					left.x=empTile.x-1;
+					left.y=empTile.y;
+					break;
+
+				default:
+					switch(empTile.y) {
+						case 0: //top side
+							down.x=empTile.x;
+							down.y=empTile.y+1;
+
+							left.x=empTile.x-1;
+							left.y=empTile.y;
+
+							right.x=empTile.x+1;
+							right.y=empTile.y;
+							break;		
+
+						case 3: //bottom side
+							up.x=empTile.x;
+							up.y=empTile.y-1;
+
+							left.x=empTile.x-1;
+							left.y=empTile.y;
+
+							right.x=empTile.x+1;
+							right.y=empTile.y;
+							break;
+													
+						default: //a mysterious side
+							throw std::runtime_error("Player_Move: Invalid Empty Tile!");
+				}
+			}
+		}
+
+		//in middle of board
+
+		up.x=empTile.x;
+		up.y=empTile.y-1;
+
+		down.x=empTile.x;
+		down.y=empTile.y+1;
+
+		left.x=empTile.x-1;
+		left.y=empTile.y;
+
+		right.x=empTile.x+1;
+		right.y=empTile.y;
+		}
+
+	//print legal move options
+	
+	std::cout<<"Choose a tile to move"<<std::endl;
+	std::cout<<"Tiles: ";
+	if(up.x!=-1) {
+		std::cout<<gboard.tile(up)<<" ";
+	}
+	if(down.x!=-1) {
+		std::cout<<gboard.tile(down)<<" ";
+	}
+	if(left.x!=-1) {
+		std::cout<<gboard.tile(left)<<" ";
+	}
+	if(right.x!=1) {
+		std::cout<<gboard.tile(right);
+	}
+	std::cout<<std::endl;
+
+	int tile;
+	point pTile;
+	std::cin>>tile;
+	bool valid=false;
+
+	while(!valid) {
+		if(tile==gboard.tile(up) || tile==gboard.tile(down) || tile==gboard.tile(left) || tile==gboard.tile(right)) {
+			valid=true;
+			if(tile==gboard.tile(up)) {
+				pTile=up;
+			}
+			else if(tile==gboard.tile(down)) {
+				pTile=down;
+			}
+			else if(tile==gboard.tile(left)) {
+				pTile=left;
+			}
+			else if(tile==gboard.tile(right)) {
+				pTile=right;
+			}
+		}
+		else{
+			std::cout<<"Please enter a valid tile."<<std::endl;
+			std::cin>>tile;
+		}
+	}
+
+	gboard.swap_tile(empTile, pTile);
+}
