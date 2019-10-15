@@ -24,6 +24,8 @@ int main() {
 
 		while(board_size<=1) {
 			std::cout<<"Invalid board size. Board size must be greater than 1. Please enter a new board size."<<std::endl;
+			std::cin.clear(); //reset stream state
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //clear buffer
 			std::cin>>board_size;
 		}
 	
@@ -60,6 +62,8 @@ int main() {
 		}	
 
 		quit(gameWon, moves, gameBoard);
+
+		return 0;
 
 	}
 	catch(std::exception& e) {
@@ -156,7 +160,14 @@ bool is_game_won(const board& gboard) {
 	
 	std::vector<int> solvedBoard=gboard.tile_order();
 	std::sort(solvedBoard.begin(), solvedBoard.end());
+	solvedBoard.erase(solvedBoard.begin() + solvedBoard.size()-1); //remove clear tile
+	
 	std::vector<int> currBoard=gboard.tile_order();
+	for(size_t i=0; i<currBoard.size(); i++) {
+		if(currBoard[i]==gboard.board_width()*gboard.board_width()) {
+			currBoard.erase(currBoard.begin() + i);
+		}
+	}
 
 	for(size_t i=0; i<currBoard.size(); i++) {
 		if(!(currBoard[i]==solvedBoard[i])) {
@@ -259,6 +270,9 @@ point player_move(board& gboard) {
 		}
 		if(valid==false) {
 			std::cout<<"Please enter a valid tile."<<std::endl;
+			//flush input buffer
+			std::cin.clear(); //reset stream state
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //gotten from stackoverflow, ignores till end of line
 			std::cin>>tile;
 		}
 	}
